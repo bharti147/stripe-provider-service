@@ -1,10 +1,18 @@
 package com.bharti.stripe_provider_service.service.impl;
 
+import com.bharti.stripe_provider_service.http.HttpRequest;
 import com.bharti.stripe_provider_service.http.HttpServiceEngine;
+import com.bharti.stripe_provider_service.service.helper.CreatePaymentHelper;
 import com.bharti.stripe_provider_service.service.interfaces.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
 
 /*
  * Business logic : Make Rest API call to Stripe create-session API
@@ -22,15 +30,20 @@ import org.springframework.stereotype.Service;
 public class PaymentServiceImpl implements PaymentService {
 
     private final HttpServiceEngine httpServiceEngine;
+    private final CreatePaymentHelper createPaymentHelper;
 
     @Override
     public String createPayment() {
         log.info("Processing payment creation logic");
+        HttpRequest httpRequest = createPaymentHelper.prepareStripeCreateSessionRequest();
 
-        String httpResponse =  httpServiceEngine.makeHttpCall();
+
+        String httpResponse =  httpServiceEngine.makeHttpCall(httpRequest);
 
         log.info("Received response from HttpServiceEngine: {}", httpResponse);
 
         return httpResponse;
     }
+
+
 }

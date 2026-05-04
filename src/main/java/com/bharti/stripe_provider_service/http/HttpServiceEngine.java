@@ -22,30 +22,17 @@ public class HttpServiceEngine {
     private final RestClient restClient;
 
 
-    public String makeHttpCall(){
+    public String makeHttpCall(HttpRequest httpRequest){
         log.info("Making HTTP call tot external service");
 
-        //headers
-        HttpHeaders httpHeaders  = new HttpHeaders();
-        httpHeaders.setBasicAuth("","");
-        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-
-        //form data
-        MultiValueMap<String, String> formUrlEncodedData = new LinkedMultiValueMap<>();
-        formUrlEncodedData.add("mode","payment");
-        formUrlEncodedData.add("success_url","https://example.com/success");
-        formUrlEncodedData.add("line_items[0][quantity]","2");
-        formUrlEncodedData.add("line_items[0][price_data][currency]","EUR");
-        formUrlEncodedData.add("line_items[0][price_data][product_data][name]","Phone XXX");
-        formUrlEncodedData.add("line_items[0][price_data][unit_amount]","100");
 
 
         //fluent api
-            ResponseEntity<String> httpResponse = restClient.method(HttpMethod.POST)
-                .uri("https://api.stripe.com/v1/checkout/sessions")
-                .headers(t -> t.addAll(httpHeaders))
-                .body(formUrlEncodedData)
+            ResponseEntity<String> httpResponse = restClient.method(httpRequest.getHttpMethod())
+                .uri(httpRequest.getUrl())
+                .headers(t -> t.addAll(httpRequest.getHttpHeaders()))
+                .body(httpRequest.getRequestData())
                 .retrieve()
                 .toEntity(String.class);
 
