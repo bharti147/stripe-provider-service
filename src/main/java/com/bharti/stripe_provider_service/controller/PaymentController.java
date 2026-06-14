@@ -1,5 +1,6 @@
 package com.bharti.stripe_provider_service.controller;
 import com.bharti.stripe_provider_service.pojo.CreatePaymentReq;
+import com.bharti.stripe_provider_service.pojo.PaymentResponse;
 import com.bharti.stripe_provider_service.service.interfaces.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +20,11 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public String createPayment(@RequestBody CreatePaymentReq createPaymentReq){
+    public PaymentResponse createPayment(@RequestBody CreatePaymentReq createPaymentReq){
      log.info(" Creating payment...createPaymentReq: {}", createPaymentReq );
-     String response = paymentService.createPayment();
-     log.info("Payment created: {}", response);
-     return "Payment created successfully! Response: " + response;
+
+        PaymentResponse paymentResponse = paymentService.createPayment(createPaymentReq);
+     log.info("Payment created: {}", paymentResponse);
+     return paymentResponse;
     }
 }

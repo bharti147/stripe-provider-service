@@ -2,16 +2,16 @@ package com.bharti.stripe_provider_service.service.impl;
 
 import com.bharti.stripe_provider_service.http.HttpRequest;
 import com.bharti.stripe_provider_service.http.HttpServiceEngine;
+import com.bharti.stripe_provider_service.pojo.CreatePaymentReq;
+import com.bharti.stripe_provider_service.pojo.PaymentResponse;
 import com.bharti.stripe_provider_service.service.helper.CreatePaymentHelper;
 import com.bharti.stripe_provider_service.service.interfaces.PaymentService;
+import com.bharti.stripe_provider_service.stripe.CheckoutSessionResponse;
+import com.bharti.stripe_provider_service.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 
 /*
@@ -31,18 +31,45 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final HttpServiceEngine httpServiceEngine;
     private final CreatePaymentHelper createPaymentHelper;
+    private final JsonUtil jsonUtil;
+
 
     @Override
-    public String createPayment() {
+    public PaymentResponse createPayment(CreatePaymentReq createPaymentReq) {
         log.info("Processing payment creation logic");
-        HttpRequest httpRequest = createPaymentHelper.prepareStripeCreateSessionRequest();
+        HttpRequest httpRequest = createPaymentHelper.prepareStripeCreateSessionRequest(createPaymentReq);
 
 
-        String httpResponse =  httpServiceEngine.makeHttpCall(httpRequest);
+        ResponseEntity<String> httpResponse = httpServiceEngine.makeHttpCall(httpRequest);
 
         log.info("Received response from HttpServiceEngine: {}", httpResponse);
 
-        return httpResponse;
+        //Convert json response to CheckoutSessionResponse
+        CheckoutSessionResponse checkoutSessionResponse = jsonUtil.convertJsonToObject(httpResponse.getBody(), CheckoutSessionResponse.class);
+        log.info("Converted CheckoutSessionResponse: {}", checkoutSessionResponse);
+
+        PaymentResponse paymentResponse = mapCheckoutSessionToPaymentResponse(checkoutSessionResponse);
+        log.info("Mapped PaymentResponse: {}", paymentResponse);
+        return paymentResponse;
+    }
+
+
+    /* a map method to take checkoutsessionresponse and convert it into
+    PaymentResponse whcih is our internal response object
+     */
+    public PaymentResponse mapCheckoutSessionToPaymentResponse(CheckoutSessionResponse checkoutSessionResponse) {
+        if (checkoutSessionResponse == null) {
+            log.warn("mapCheckoutSessionToPaymentResponse called with null");
+            return null;
+        }
+
+        PaymentResponse paymentResponse = new PaymentResponse();
+        paymentResponse.setStripeSessionId(checkoutSessionResponse.getId());
+        paymentResponse.setHostedPageUrl(checkoutSessionResponse.getUrl());
+//         paymentResponse.setStatus(checkoutSessionResponse.getStatus());
+
+        log.info("Mapped CheckoutSessionResponse to PaymentResponse: {}", paymentResponse);
+        return paymentResponse;
     }
 
 

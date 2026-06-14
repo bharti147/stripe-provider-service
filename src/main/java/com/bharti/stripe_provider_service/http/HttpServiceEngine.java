@@ -22,8 +22,8 @@ public class HttpServiceEngine {
     private final RestClient restClient;
 
 
-    public String makeHttpCall(HttpRequest httpRequest){
-        log.info("Making HTTP call tot external service");
+    public ResponseEntity<String> makeHttpCall(HttpRequest httpRequest){
+        log.info("Making HTTP call to external service");
 
 
 
@@ -39,7 +39,7 @@ public class HttpServiceEngine {
             log.info("HTTP call completed. Status code: {}, Response body: {}", httpResponse.getStatusCode(), httpResponse.getBody());
 
 
-        return "\n" + httpResponse.getBody();
+        return httpResponse;
 
     }
 
