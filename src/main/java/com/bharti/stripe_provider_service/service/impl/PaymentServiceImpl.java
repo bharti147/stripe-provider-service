@@ -1,5 +1,6 @@
 package com.bharti.stripe_provider_service.service.impl;
 
+import com.bharti.stripe_provider_service.exception.StripeProviderException;
 import com.bharti.stripe_provider_service.http.HttpRequest;
 import com.bharti.stripe_provider_service.http.HttpServiceEngine;
 import com.bharti.stripe_provider_service.pojo.CreatePaymentReq;
@@ -10,8 +11,10 @@ import com.bharti.stripe_provider_service.stripe.CheckoutSessionResponse;
 import com.bharti.stripe_provider_service.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
 
 
 /*
@@ -37,6 +40,16 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentResponse createPayment(CreatePaymentReq createPaymentReq) {
         log.info("Processing payment creation logic");
+
+        if(createPaymentReq.getSuccessUrl()==null || createPaymentReq.getSuccessUrl().isEmpty()){
+            log.error("Success URL is missing createPaymentReq");
+            throw new StripeProviderException(
+                    "30001",
+                    "Success url is required to create a stripe checkout session",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+
         HttpRequest httpRequest = createPaymentHelper.prepareStripeCreateSessionRequest(createPaymentReq);
 
 
