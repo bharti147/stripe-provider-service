@@ -5,10 +5,12 @@ import com.bharti.stripe_provider_service.http.HttpRequest;
 import com.bharti.stripe_provider_service.http.HttpServiceEngine;
 import com.bharti.stripe_provider_service.pojo.CreatePaymentReq;
 import com.bharti.stripe_provider_service.pojo.PaymentResponse;
+import com.bharti.stripe_provider_service.service.ValidationService;
 import com.bharti.stripe_provider_service.service.helper.CreatePaymentHelper;
 import com.bharti.stripe_provider_service.service.interfaces.PaymentService;
 import com.bharti.stripe_provider_service.stripe.CheckoutSessionResponse;
 import com.bharti.stripe_provider_service.util.JsonUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,20 +37,17 @@ public class PaymentServiceImpl implements PaymentService {
     private final HttpServiceEngine httpServiceEngine;
     private final CreatePaymentHelper createPaymentHelper;
     private final JsonUtil jsonUtil;
+    private final ValidationService validationService;
 
 
     @Override
     public PaymentResponse createPayment(CreatePaymentReq createPaymentReq) {
         log.info("Processing payment creation logic");
 
-        if(createPaymentReq.getSuccessUrl()==null || createPaymentReq.getSuccessUrl().isEmpty()){
-            log.error("Success URL is missing createPaymentReq");
-            throw new StripeProviderException(
-                    "30001",
-                    "Success url is required to create a stripe checkout session",
-                    HttpStatus.BAD_REQUEST
-            );
-        }
+
+
+        //validate the request before proceeding
+       validationService.validate(createPaymentReq);
 
         HttpRequest httpRequest = createPaymentHelper.prepareStripeCreateSessionRequest(createPaymentReq);
 
